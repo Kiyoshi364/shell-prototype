@@ -1,6 +1,6 @@
 BIN=psh
 
-OBJ_DIR=./objects
+OBJ_DIR=.objects
 
 CC=gcc
 CC_FLAGS=-Wall -c

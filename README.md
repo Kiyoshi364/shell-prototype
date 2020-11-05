@@ -18,6 +18,6 @@ O objetivo é fazer uma shell com funcionalidades básicas.
 - [ ] built-in
 	 - [ ] quit: sair do programa
 	 - [ ] cd: change-directory
-	 - [ ] ./<bin>: executar binários
+	 - [ ] \<PATH\>: executar binários
 
 - [ ] interpretação de sinais: SIGINT (ctrl-c), SIGSTP (ctrl-z), EOF (ctrl-d)

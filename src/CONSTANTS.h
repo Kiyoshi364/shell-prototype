@@ -4,4 +4,10 @@
 #define MAXLINE 0xFFFF
 #define MAXARGS 0x80
 
+#define NORMAL_STATE			0x00 
+#define COPY_SIMPLE_STATE		0x01
+#define COPY_DOUBLE_STATE		0x02
+#define ESCAPE_STATE			0x04
+#define JUST_FINISHED_STATE		0x08
+
 #endif // CONSTANTS

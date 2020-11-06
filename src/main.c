@@ -28,8 +28,6 @@ int main(int argc, char **argv, char **envp) {
 		// Check for events TODO
 		if (events) show_events();
 
-		if (debug && *cmd) printf("Read: %s\n", cmd);
-
 		// Do command
 		eval(cmd);
 
@@ -49,17 +47,23 @@ int main(int argc, char **argv, char **envp) {
 					cli = 1;
 					endOfLine = 1;
 					break;
+
+				case '&':
+					cmd[read++] = c;
 				case ';':
 					endOfLine = 1;
 					break;
+
 				case ' ':
-					if (cmd[read-1] == ' ') break;
+					if (!read || cmd[read-1] == ' ') break;
 
 				default:
 					cmd[read++] = c;
 			}
 		}
 		cmd[read] = '\0';
+
+		if (DEBUG_READ && debug && *cmd) printf("Read: %s\n\n", cmd);
 	}
 
 	return 0;
@@ -76,6 +80,7 @@ int eval(char *cmd) {
 	char *argv[MAXARGS];
 	char buffer[MAXLINE];
 	int bg = 0;
+
 	int argc = 0, ci = 0, bi = 0;
 	int state = JUST_FINISHED_STATE;
 
@@ -102,6 +107,9 @@ int eval(char *cmd) {
 					// Escaping sequence '\'
 					state |= ESCAPE_STATE;
 					break;
+
+				case '&':
+					bg = 1;
 				case ' ':
 					state = JUST_FINISHED_STATE;
 					buffer[bi++] = '\0';
@@ -162,7 +170,7 @@ int eval(char *cmd) {
 			printf("AAAAAAAAAAAAAAA PANIC AAAAAAAAAAAAAAA\n");
 			printf("Parser entered in an undefined state\n");
 			printf("cmd: %s\n", cmd);
-			printf("ci: %d, bi: %d\n", ci, bi);
+			printf("bg: %d, ci: %d, bi: %d\n", bg, ci, bi);
 			printf("argc: %d\n", argc);
 			for (int i = 0; i < argc; i++) {
 				printf("argv[%d]: %s\n", i, argv[i]);
@@ -172,13 +180,19 @@ int eval(char *cmd) {
 		}
 	}
 	buffer[bi++] = '\0';
+	argv[argc] = buffer + bi;
+	buffer[bi++] = '\0';
 
-	if (debug) {
+	argc = bg ? argc-1 : argc;
+
+	if (DEBUG_PARSE && debug) {
 		printf("cmd: %s\n", cmd);
+		printf("bg: %d\n", bg);
 		printf("argc: %d\n", argc);
 		for (int i = 0; i < argc; i++) {
 			printf("argv[%d]: %s\n", i, argv[i]);
 		}
+		putchar('\n');
 	}
 
 	return 0;

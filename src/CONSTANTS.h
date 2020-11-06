@@ -10,4 +10,7 @@
 #define ESCAPE_STATE			0x04
 #define JUST_FINISHED_STATE		0x08
 
+#define DEBUG_READ		0
+#define DEBUG_PARSE		1
+
 #endif // CONSTANTS

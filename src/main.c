@@ -28,7 +28,7 @@ int main(int argc, char **argv, char **envp) {
 		// Check for events TODO
 		if (events) show_events();
 
-		// Do command
+		// Do command or built-in
 		eval(cmd);
 
 		if (cli) print_cli();

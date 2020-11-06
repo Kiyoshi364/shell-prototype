@@ -9,7 +9,7 @@ O objetivo é fazer uma shell com funcionalidades básicas.
 	 - [X] input parser
 	 - [ ] command runner
 		- [X] general commands
-			 - [X] <task> &: rodar task em background
+			 - [X] \<task\> &: rodar task em background
 		- [ ] built-in
 			 - [ ] quit: sair do programa
 			 - [ ] cd: change-directory
@@ -17,7 +17,7 @@ O objetivo é fazer uma shell com funcionalidades básicas.
 				 - [ ] jobs: listar tasks
 				 - [ ] fg: *focar* em uma task
 				 - [ ] bg: rodar em background
-				 - [ ] <builtin> &: rodar builtin em background
+				 - [ ] \<builtin\> &: rodar builtin em background
 				 - [ ] Job-Tree: Estrutura de dados para guardar as tasks
 						e meta-dados
 						(PIDs, JIDs, Parentescos)

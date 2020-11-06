@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "CONSTANTS.h"
 
@@ -9,7 +10,8 @@ int events = 0;
 
 // Functions
 void print_cli();
-int eval(char *);
+int eval(char *, char **);
+int builtin(char **, int);
 
 // Char functions
 int validHex(char);
@@ -25,11 +27,11 @@ int main(int argc, char **argv, char **envp) {
 
 	while (1) {
 
+		// Do command or built-in
+		eval(cmd, envp);
+
 		// Check for events TODO
 		if (events) show_events();
-
-		// Do command or built-in
-		eval(cmd);
 
 		if (cli) print_cli();
 
@@ -74,7 +76,7 @@ void print_cli(int breakLine) {
 	fflush(stdout);
 }
 
-int eval(char *cmd) {
+int eval(char *cmd, char **envp) {
 	if (!(*cmd)) return 0;
 
 	char *argv[MAXARGS];
@@ -168,7 +170,7 @@ int eval(char *cmd) {
 			// Should NOT enter here
 			buffer[bi++] = '\0';
 			printf("AAAAAAAAAAAAAAA PANIC AAAAAAAAAAAAAAA\n");
-			printf("Parser entered in an undefined state\n");
+			printf("Parser entered in an undefined state.\n");
 			printf("cmd: %s\n", cmd);
 			printf("bg: %d, ci: %d, bi: %d\n", bg, ci, bi);
 			printf("argc: %d\n", argc);
@@ -195,6 +197,35 @@ int eval(char *cmd) {
 		putchar('\n');
 	}
 
+	pid_t pid;
+	int jid, status;
+
+	// Running de command
+	if (!builtin(argv, bg)) {
+		if ((pid = fork()) == 0) {
+			if (execve(argv[0], argv, envp) < 0) {
+				printf("%s: Command not found.\n", argv[0]);
+				exit(0);
+			}
+		}
+
+		// TODO: Update Task Manager
+		jid = 0;
+
+
+		if (bg) {
+			printf("[%u] %d\t\t%s\n", jid, pid, cmd);
+		} else {
+			int err;
+			if ( (err = waitpid(pid, &status, WUNTRACED)) < 0 )
+				printf("wait foreground: waitpid error (%d).\n", err);
+		}
+	}
+
+	return 0;
+}
+
+int builtin(char **argv, int bg) {
 	return 0;
 }
 

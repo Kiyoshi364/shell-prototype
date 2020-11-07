@@ -7,11 +7,14 @@ CC_FLAGS=-Wall -c
 
 output: $(BIN) objDir
 
-$(BIN): objDir main.o
+$(BIN): objDir main.o task.o
 	@ $(CC) -o $(BIN) $(OBJ_DIR)/main.o
 
 main.o: main.c
 	@ $(CC) $(CC_FLAGS) -o $(OBJ_DIR)/main.o main.c
+
+task.o: task.c
+	@ $(CC) $(CC_FLAGS) -o $(OBJ_DIR)/task.o task.c
 
 objDir:
 	@ mkdir -p $(OBJ_DIR)

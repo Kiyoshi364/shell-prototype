@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include "CONSTANTS.h"
+#include "sighand.h"
 
 // Globals
 int debug = 1;
@@ -21,6 +22,8 @@ char hexToNum(char);
 void show_events();
 
 int main(int argc, char **argv, char **envp) {
+
+	installSigHandlers();
 
 	char cmd[MAXLINE] = "";
 	int read = 0, cli = 1, endOfLine = 0;

@@ -54,12 +54,19 @@ void reportTask(task_t *task, int jid) {
 			break;
 		case STATUS_SIGNALED:
 			printf("[%d]%c %d Signaled by %d\t\t%s\n", jid, 0, pid, rcode, cmd);
+			task->status = STATUS_TO_CLEAR;
 			break;
 		case STATUS_EXITED:
 			printf("[%d]%c %d Exited with %d\t\t%s\n", jid, 0, pid, rcode, cmd);
+			task->status = STATUS_TO_CLEAR;
 			break;
 		case STATUS_DONE:
 			printf("[%d]%c %d Done\t\t%s\n", jid, 0, pid, cmd);
+			task->status = STATUS_TO_CLEAR;
+			break;
+		default:
+			printf("[%d]%c %d Unknown\t\t%s\n", jid, 0, pid, cmd);
+			task->status = STATUS_TO_CLEAR;
 			break;
 	}
 }
@@ -127,7 +134,7 @@ int clean_TM(task_man_t *tm) {
 	while (tm->size > 0) {
 		task = pop_Task(tm);
 
-		if (task->status != STATUS_EXITED) {
+		if (task->status != STATUS_TO_CLEAR) {
 			push_Task(tm, task);
 			break;
 		}

@@ -22,6 +22,6 @@ O objetivo é fazer uma shell com funcionalidades básicas.
 						e meta-dados
 						(PIDs, JIDs, Parentescos)
 
- - [ ] interpretação de sinais
-	 - [ ] SIGINT (ctrl-c): enviar para a task em *foco*
-	 - [ ] SIGSTP (ctrl-z): enviar para a task em *foco*
+ - [X] interpretação de sinais
+	 - [X] SIGINT (ctrl-c): enviar para a task em *foco*
+	 - [X] SIGSTP (ctrl-z): enviar para a task em *foco*

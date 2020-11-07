@@ -23,5 +23,6 @@
 #define STATUS_SIGNALED				3
 #define STATUS_EXITED				4
 #define STATUS_DONE					5
+#define STATUS_TO_CLEAR				6
 
 #endif // CONSTANTS

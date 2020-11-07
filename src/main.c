@@ -268,19 +268,21 @@ int run(char *cmd, int len, char **argv, char **envp, int bg) {
 		task_t *temp = *(task_manager->tasks);
 		*(task_manager->tasks) = task;
 
-		int status, err;
-		if ( (err = waitpid(pid, &status, WUNTRACED)) < 0 )
-			printf("wait foreground: waitpid error (%d).\n", err);
+		int status, err = 0;
+
+		while ( !err ) {
+			if ( (err = waitpid(pid, &status, WNOHANG | WUNTRACED)) < 0 )
+				printf("wait foreground: waitpid error (%d).\n", err);
+		}
 
 		updateTask(task, status);
 
 		*(task_manager->tasks) = temp;
 
-		if (task->status == STATUS_EXITED) {
-			// do nothing
-		} else if ( task->status == STATUS_STOPPED || task->status == STATUS_SIGNALED ) {
+		if ( task->status == STATUS_STOPPED || task->status == STATUS_SIGNALED ) {
 			jid = push_Task(task_manager, task);
-			events = 1;
+
+			reportTask(task, jid);
 		}
 	} else { // Builtin
 		// TODO: use rcode
@@ -335,7 +337,7 @@ void show_events() {
 	pid_t pid;
 	int jid = 0;
 
-	while ( (pid = waitpid(-1, &status, 0)) > 0 ) {
+	while ( (pid = waitpid(-1, &status, WNOHANG)) > 0 ) {
 		task_t *task = find_Task(task_manager, pid, &jid);
 		if ( !task ) {
 			// Should NOT enter here
@@ -346,11 +348,9 @@ void show_events() {
 		}
 		updateTask(task, status);
 		reportTask(task, jid);
-		// printf("Filho pid=%d: terminou ou parou (%d)\n", pid, status); // DEBUG_CODE
 	}
-	// printf("LAST: Filho pid=%d: terminou ou parou (%d)\n", pid, status); // DEBUG_CODE
 
-	 clean_TM(task_manager);
+	clean_TM(task_manager);
 
 	events = 0;
 

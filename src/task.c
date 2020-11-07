@@ -28,10 +28,10 @@ task_man_t* init_TM(task_man_t *tm, const unsigned int initLen) {
 }
 
 task_man_t* free_TM(task_man_t *tm, int force) {
-	for ( task_t task ; tm->size > 0; ) {
+	for ( task_t *task ; tm->size > 0; ) {
 		task = pop_Task(tm);
 		if ( !force && task ) {
-			push_Task(task);
+			push_Task(tm, task);
 			return tm;
 		}
 	}
@@ -40,7 +40,7 @@ task_man_t* free_TM(task_man_t *tm, int force) {
 	return 0;
 }
 
-task_man_t* push_Task(task_t *tm, task_t *task) {
+task_man_t* push_Task(task_man_t *tm, task_t *task) {
 	if ( !tm ) return 0;
 	if ( tm->size + 1 >= tm->len ) {
 		if ( !(tm->tasks = realloc(tm->tasks, tm->len*2)) ) {
@@ -52,7 +52,7 @@ task_man_t* push_Task(task_t *tm, task_t *task) {
 	return tm;
 }
 
-task_t* pop_Task(task_t *tm) {
+task_t* pop_Task(task_man_t *tm) {
 	if ( !tm || tm->size <= 0 ) return 0;
 	if ( tm->size - 1 < tm->len/2 ) {
 	}

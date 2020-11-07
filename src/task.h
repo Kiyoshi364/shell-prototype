@@ -16,7 +16,7 @@ typedef struct _TASK {
 } task_t;
 
 task_t* newTask(char *, pid_t, jid_t);
-void freeTask(task_t *task);
+void freeTask(task_t *);
 
 typedef struct _TASK_MANAGER {
 	task_t **tasks;
@@ -24,10 +24,10 @@ typedef struct _TASK_MANAGER {
 	int len;
 } task_man_t;
 
-task_man_t* init_TM(task_man_t *tm, const unsigned int initLen);
-task_man_t* free_TM(task_man_t *tm, int force);
+task_man_t* init_TM(task_man_t *, const unsigned int);
+task_man_t* free_TM(task_man_t *, int);
 
-int push_Task(task_t *tm, task_t task);
-task_t* pop_Task(task_t *tm);
+task_man_t* push_Task(task_man_t *, task_t *);
+task_t* pop_Task(task_man_t *);
 
 #endif // TASK

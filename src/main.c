@@ -225,17 +225,19 @@ int run(char *cmd, int len, char **argv, char **envp, int bg) {
 	if (!(*cmd) || len <= 1) return 0;
 
 	pid_t pid;
-	int jid, status, rcode;
+	int jid, rcode;
 
 	int id = getBuiltinID(*argv), forked = bg || !id;
 
 	// Running de command
 	if ( (forked) && ((pid = fork()) == 0) ) {
 
-		if ( id && !(rcode = builtin(argv, envp)) ) {
+		if ( !id ) {
 			if (execve(argv[0], argv, envp) < 0)
 				printf("%s: command not found.\n", argv[0]);
+			exit(0);
 		}
+		rcode = builtin(argv, envp);
 		exit(rcode);
 	}
 
@@ -248,12 +250,13 @@ int run(char *cmd, int len, char **argv, char **envp, int bg) {
 
 
 	if (bg) {
-		printf("[%u] %d\t\t%s\n", jid, pid, cmd);
+		printf("[%u] %d\t%s\n", jid, pid, cmd);
 	} else if (forked) {
-		// use rcode
-		int err;
+		int status, err;
 		if ( (err = waitpid(pid, &status, WUNTRACED)) < 0 )
 			printf("wait foreground: waitpid error (%d).\n", err);
+	} else {
+		// use rcode
 	}
 
 	return 0;
@@ -295,6 +298,14 @@ int builtin(char **argv, char **envp) {
 }
 
 void show_events() {
+	int status;
+	pid_t pid;
+
+	while ( (pid = waitpid(-1, &status, 0)) > 0 ) {
+		printf("Filho pid=%d: terminou ou parou (%d)\n", pid, status);
+	}
+	printf("LAST: Filho pid=%d: terminou ou parou (%d)\n", pid, status);
+	events = 0;
 }
 
 int validHex(char c) {

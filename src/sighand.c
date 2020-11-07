@@ -3,6 +3,8 @@
 
 #include "sighand.h"
 
+extern int events;
+
 void handler(int sig) {
 	// signal(sig, SIGTSTP);
 	printf("Você apertou ctrl Z\n");
@@ -10,7 +12,7 @@ void handler(int sig) {
 }
 
 void chld_handler(int sig) {
-	printf("Filho terminou ou parou\n");
+	events = 1;
 }
 
 void stop_handler(int sig) {

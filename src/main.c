@@ -214,8 +214,11 @@ int parseCmd(char *cmd, char *buffer, char **argv) {
 		}
 	}
 	buffer[bi++] = '\0';
+	argv[argc] = 0;
+	/*
 	argv[argc] = buffer + bi;
 	buffer[bi++] = '\0';
+	*/
 
 	argc = bg ? argc-1 : argc;
 
@@ -226,6 +229,7 @@ int parseCmd(char *cmd, char *buffer, char **argv) {
 		for (int i = 0; i < argc; i++) {
 			printf("argv[%d]: %s\n", i, argv[i]);
 		}
+		printf("argv+%d: %p\n", argc, argv[argc]);
 		putchar('\n');
 	}
 

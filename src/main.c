@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 #include "CONSTANTS.h"
 #include "sighand.h"
@@ -9,9 +10,11 @@
 int debug = 1;
 int events = 0;
 
-// Functions
+// Main Functions
 void print_cli();
-int eval(char *, char **);
+int readCmd(char *, int *);
+int parseCmd(char *, char *, char **);
+int run(char *, int, char **, char **, int);
 int builtin(char **, int);
 
 // Char functions
@@ -25,50 +28,32 @@ int main(int argc, char **argv, char **envp) {
 
 	installSigHandlers();
 
+	// for reading cmd
 	char cmd[MAXLINE] = "";
-	int read = 0, cli = 1, endOfLine = 0;
+	int cli = 1, read = 0;
+
+	// for parsing cmd
+	char *argv2[MAXARGS];
+	char buffer[MAXLINE];
+
+	// for running in background
+	int bg = 0;
 
 	while (1) {
-
-		// Do command or built-in
-		eval(cmd, envp);
-
-		// Check for events TODO
-		if (events) show_events();
 
 		if (cli) print_cli();
 
 		// Read from stdin
-		read = 0, cli = 0, endOfLine = 0;
-		while (!endOfLine && read < MAXLINE) {
-			int c = fgetc(stdin);
+		cli = readCmd(cmd, &read);
 
-			switch (c) {
-				case EOF:
-					putchar('\n');
-					exit(0);
+		// Parse cmd
+		bg = parseCmd(cmd, buffer, argv2);
 
-				case '\n':
-					cli = 1;
-					endOfLine = 1;
-					break;
+		// Do command or built-in
+		run(cmd, read, argv2, envp, bg);
 
-				case '&':
-					cmd[read++] = c;
-				case ';':
-					endOfLine = 1;
-					break;
-
-				case ' ':
-					if (!read || cmd[read-1] == ' ') break;
-
-				default:
-					cmd[read++] = c;
-			}
-		}
-		cmd[read] = '\0';
-
-		if (DEBUG_READ && debug && *cmd) printf("Read: %s\n\n", cmd);
+		// Check for events TODO
+		if (events) show_events();
 	}
 
 	return 0;
@@ -79,17 +64,49 @@ void print_cli(int breakLine) {
 	fflush(stdout);
 }
 
-int eval(char *cmd, char **envp) {
-	if (!(*cmd)) return 0;
+int readCmd(char *cmd, int *lenp) {
+	int read = 0, cli = 0, endOfLine = 0;
+	while (!endOfLine && read < MAXLINE) {
+		int c = fgetc(stdin);
 
-	char *argv[MAXARGS];
-	char buffer[MAXLINE];
+		switch (c) {
+			case EOF:
+				putchar('\n');
+				exit(0);
+
+			case '\n':
+				cli = 1;
+				endOfLine = 1;
+				break;
+
+			case '&':
+				cmd[read++] = c;
+			case ';':
+				endOfLine = 1;
+				break;
+
+			case ' ':
+				if (!read || cmd[read-1] == ' ') break;
+
+			default:
+				cmd[read++] = c;
+		}
+	}
+	cmd[read] = '\0';
+
+	*lenp = read + 1;
+
+	if (DEBUG_READ && debug && *cmd) printf("Read: %s\n\n", cmd);
+
+	return cli;
+}
+
+int parseCmd(char *cmd, char *buffer, char **argv) {
 	int bg = 0;
 
 	int argc = 0, ci = 0, bi = 0;
 	int state = JUST_FINISHED_STATE;
 
-	// Parsing
 	while (cmd[ci]) {
 		if (state == JUST_FINISHED_STATE) {
 			argv[argc++] = buffer + bi;
@@ -199,6 +216,12 @@ int eval(char *cmd, char **envp) {
 		}
 		putchar('\n');
 	}
+
+	return bg;
+}
+
+int run(char *cmd, int len, char **argv, char **envp, int bg) {
+	if (!(*cmd) || len <= 1) return 0;
 
 	pid_t pid;
 	int jid, status;

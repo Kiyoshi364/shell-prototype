@@ -11,6 +11,6 @@
 #define JUST_FINISHED_STATE		0x08
 
 #define DEBUG_READ		0
-#define DEBUG_PARSE		1
+#define DEBUG_PARSE		0
 
 #endif // CONSTANTS

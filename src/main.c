@@ -215,10 +215,6 @@ int parseCmd(char *cmd, char *buffer, char **argv) {
 	}
 	buffer[bi++] = '\0';
 	argv[argc] = 0;
-	/*
-	argv[argc] = buffer + bi;
-	buffer[bi++] = '\0';
-	*/
 
 	argc = bg ? argc-1 : argc;
 

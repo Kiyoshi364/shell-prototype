@@ -5,6 +5,7 @@
 
 #include "CONSTANTS.h"
 #include "sighand.h"
+#include "builtin.h"
 
 // Globals
 int debug = 1;
@@ -15,7 +16,7 @@ void print_cli();
 int readCmd(char *, int *);
 int parseCmd(char *, char *, char **);
 int run(char *, int, char **, char **, int);
-int builtin(char **, int);
+int builtin(char **, char **);
 
 // Char functions
 int validHex(char);
@@ -224,35 +225,73 @@ int run(char *cmd, int len, char **argv, char **envp, int bg) {
 	if (!(*cmd) || len <= 1) return 0;
 
 	pid_t pid;
-	int jid, status;
+	int jid, status, rcode;
+
+	int id = getBuiltinID(*argv), forked = bg || !id;
 
 	// Running de command
-	if (!builtin(argv, bg)) {
-		if ((pid = fork()) == 0) {
-			if (execve(argv[0], argv, envp) < 0) {
-				printf("%s: Command not found.\n", argv[0]);
-				exit(0);
-			}
+	if ( (forked) && ((pid = fork()) == 0) ) {
+
+		if ( id && !(rcode = builtin(argv, envp)) ) {
+			if (execve(argv[0], argv, envp) < 0)
+				printf("%s: command not found.\n", argv[0]);
 		}
+		exit(rcode);
+	}
 
-		// TODO: Update Task Manager
-		jid = 0;
+	if (!forked) {
+		rcode = builtin(argv, envp);
+	}
+
+	// TODO: Update Task Manager
+	jid = 0;
 
 
-		if (bg) {
-			printf("[%u] %d\t\t%s\n", jid, pid, cmd);
-		} else {
-			int err;
-			if ( (err = waitpid(pid, &status, WUNTRACED)) < 0 )
-				printf("wait foreground: waitpid error (%d).\n", err);
-		}
+	if (bg) {
+		printf("[%u] %d\t\t%s\n", jid, pid, cmd);
+	} else if (forked) {
+		// use rcode
+		int err;
+		if ( (err = waitpid(pid, &status, WUNTRACED)) < 0 )
+			printf("wait foreground: waitpid error (%d).\n", err);
 	}
 
 	return 0;
 }
 
-int builtin(char **argv, int bg) {
-	return 0;
+int builtin(char **argv, char **envp) {
+	int id = 0, rcode;
+
+	id = getBuiltinID(*argv);
+
+	switch (id) {
+		case QUIT_BUILTIN:
+			rcode = quit(argv, envp);
+			break;
+		case CD_BUILTIN:
+			rcode = cd(argv, envp);
+			break;
+		case JOBS_BUILTIN:
+			rcode = jobs(argv, envp);
+			break;
+		case FG_BUILTIN:
+			rcode = fg(argv, envp);
+			break;
+		case BG_BUILTIN:
+			rcode = bg(argv, envp);
+			break;
+
+		default:
+			rcode = UNKNOWN_BUILTIN;
+		case UNKNOWN_BUILTIN:
+			break;
+	}
+
+	if (DEBUG_BUILTIN && debug) {
+		printf("builtin_id: %d, rcode: %d\n\n", id, rcode);
+	}
+
+	return rcode;
 }
 
 void show_events() {

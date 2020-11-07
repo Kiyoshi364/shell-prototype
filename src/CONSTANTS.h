@@ -12,5 +12,6 @@
 
 #define DEBUG_READ		0
 #define DEBUG_PARSE		0
+#define DEBUG_BUILTIN	1
 
 #endif // CONSTANTS

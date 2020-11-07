@@ -1,8 +1,10 @@
 #ifndef CONSTANTS
 #define CONSTANTS
 
-#define MAXLINE 0xFFFF
-#define MAXARGS 0x80
+#define MAXLINE	0xFFFF
+#define MAXARGS	0x80
+
+#define INITIAL_STACK_SIZE	4
 
 #define NORMAL_STATE			0x00 
 #define COPY_SIMPLE_STATE		0x01
@@ -12,6 +14,14 @@
 
 #define DEBUG_READ		0
 #define DEBUG_PARSE		0
-#define DEBUG_BUILTIN	1
+#define DEBUG_BUILTIN	0
+#define DEBUG_TASKMAN	0
+
+#define STATUS_NOT_RUNNING			0
+#define STATUS_RUNNING				1
+#define STATUS_STOPPED				2
+#define STATUS_SIGNALED				3
+#define STATUS_EXITED				4
+#define STATUS_DONE					5
 
 #endif // CONSTANTS

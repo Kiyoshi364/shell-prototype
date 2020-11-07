@@ -5,11 +5,13 @@
 
 #include "CONSTANTS.h"
 #include "sighand.h"
+#include "task.h"
 #include "builtin.h"
 
 // Globals
 int debug = 1;
 int events = 0;
+task_man_t *task_manager;
 
 // Main Functions
 void print_cli();
@@ -27,7 +29,16 @@ void show_events();
 
 int main(int argc, char **argv, char **envp) {
 
+	// install handlers
 	installSigHandlers();
+
+	// init task manager
+	task_manager = init_TM(INITIAL_STACK_SIZE);
+	{
+	task_t *fg_task = newTask("", 0);
+	fg_task->status = STATUS_NOT_RUNNING;
+	push_Task(task_manager, fg_task);
+	}
 
 	// for reading cmd
 	char cmd[MAXLINE] = "";
@@ -53,7 +64,7 @@ int main(int argc, char **argv, char **envp) {
 		// Do command or built-in
 		run(cmd, read, argv2, envp, bg);
 
-		// Check for events TODO
+		// Check for events
 		if (events) show_events();
 	}
 
@@ -225,7 +236,7 @@ int run(char *cmd, int len, char **argv, char **envp, int bg) {
 	if (!(*cmd) || len <= 1) return 0;
 
 	pid_t pid;
-	int jid, rcode;
+	int jid = 0, rcode;
 
 	int id = getBuiltinID(*argv), forked = bg || !id;
 
@@ -245,18 +256,40 @@ int run(char *cmd, int len, char **argv, char **envp, int bg) {
 		rcode = builtin(argv, envp);
 	}
 
-	// TODO: Update Task Manager
-	jid = 0;
-
+	// Update Task Manager
+	task_t *task = newTask(cmd, pid);
+	task->status = STATUS_RUNNING;
 
 	if (bg) {
+		jid = push_Task(task_manager, task);
+
 		printf("[%u] %d\t%s\n", jid, pid, cmd);
 	} else if (forked) {
+		task_t *temp = *(task_manager->tasks);
+		*(task_manager->tasks) = task;
+
 		int status, err;
 		if ( (err = waitpid(pid, &status, WUNTRACED)) < 0 )
 			printf("wait foreground: waitpid error (%d).\n", err);
-	} else {
-		// use rcode
+
+		updateTask(task, status);
+
+		*(task_manager->tasks) = temp;
+
+		if (task->status == STATUS_EXITED) {
+			// do nothing
+		} else if ( task->status == STATUS_STOPPED || task->status == STATUS_SIGNALED ) {
+			jid = push_Task(task_manager, task);
+			events = 1;
+		}
+	} else { // Builtin
+		// TODO: use rcode
+	}
+
+	if (!jid) freeTask(task);
+
+	if (DEBUG_TASKMAN && debug) {
+		print_TM(task_manager);
 	}
 
 	return 0;
@@ -300,12 +333,30 @@ int builtin(char **argv, char **envp) {
 void show_events() {
 	int status;
 	pid_t pid;
+	int jid = 0;
 
 	while ( (pid = waitpid(-1, &status, 0)) > 0 ) {
-		printf("Filho pid=%d: terminou ou parou (%d)\n", pid, status);
+		task_t *task = find_Task(task_manager, pid, &jid);
+		if ( !task ) {
+			// Should NOT enter here
+			printf("AAAAAAAAAAAAAAA PANIC AAAAAAAAAAAAAAA\n");
+			print_TM(task_manager);
+			printf("AAAAAAAAAAAAAAA PANIC AAAAAAAAAAAAAAA\n");
+			continue;
+		}
+		updateTask(task, status);
+		reportTask(task, jid);
+		// printf("Filho pid=%d: terminou ou parou (%d)\n", pid, status); // DEBUG_CODE
 	}
-	printf("LAST: Filho pid=%d: terminou ou parou (%d)\n", pid, status);
+	// printf("LAST: Filho pid=%d: terminou ou parou (%d)\n", pid, status); // DEBUG_CODE
+
+	 clean_TM(task_manager);
+
 	events = 0;
+
+	if (DEBUG_TASKMAN && debug) {
+		print_TM(task_manager);
+	}
 }
 
 int validHex(char c) {

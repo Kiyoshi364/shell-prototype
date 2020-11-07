@@ -18,7 +18,7 @@ O objetivo é fazer uma shell com funcionalidades básicas.
 				 - [ ] fg: *focar* em uma task
 				 - [ ] bg: rodar em background
 				 - [ ] \<builtin\> &: rodar builtin em background
-				 - [ ] Job-Tree: Estrutura de dados para guardar as tasks
+				 - [X] Job-Tree: Estrutura de dados para guardar as tasks
 						e meta-dados
 						(PIDs, JIDs, Parentescos)
 

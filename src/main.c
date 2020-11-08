@@ -270,7 +270,7 @@ int parseCmd(char *cmd, char *buffer, char **argv) {
 	buffer[bi++] = '\0';
 	argv[argc] = 0;
 
-	if (bg) {
+	if ( bg && argv[argc-1] == 0 ) {
 		argv[--argc] = 0;
 	}
 

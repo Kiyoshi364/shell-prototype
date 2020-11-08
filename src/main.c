@@ -108,6 +108,7 @@ int readCmd(char *cmd, int *lenp) {
 					break;
 
 				case '&':
+					if (cmd[read-1] != ' ') cmd[read++] = ' ';
 					cmd[read++] = c;
 				case ';':
 					state = JUST_FINISHED_STATE;
@@ -270,7 +271,7 @@ int parseCmd(char *cmd, char *buffer, char **argv) {
 	buffer[bi++] = '\0';
 	argv[argc] = 0;
 
-	if ( bg && argv[argc-1] == 0 ) {
+	if ( bg ) {
 		argv[--argc] = 0;
 	}
 

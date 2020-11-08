@@ -234,6 +234,9 @@ int parseCmd(char *cmd, char *buffer, char **argv) {
 				case 'n':
 					buffer[bi++] = '\n';
 					break;
+				case ' ':
+					buffer[bi++] = ' ';
+					break;
 				case '\'':
 					buffer[bi++] = '\'';
 					break;

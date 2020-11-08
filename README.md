@@ -29,8 +29,8 @@ O objetivo é fazer uma shell com funcionalidades básicas.
 ## Todo Extra
 
  - [X] CLI with pwd
+ - [X] search commands in PATH directories
  - [ ] +, - identifiers in jobs
- - [ ] search commands in PATH directories
 
 ## Known Bugs
 

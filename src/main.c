@@ -21,7 +21,8 @@ int run(char *, int, char **, char **, int);
 int builtin(char **, char **);
 void show_events();
 
-// Char functions
+// Helper functions
+int search(char **, char **);
 int validHex(char);
 char hexToNum(char);
 
@@ -304,7 +305,8 @@ int run(char *cmd, int len, char **argv, char **envp, int bg) {
 
 		if ( !id ) {
 			if (execve(argv[0], argv, envp) < 0)
-				printf("%s: command not found.\n", argv[0]);
+				if (search(argv, envp))
+					printf("%s: command not found.\n", argv[0]);
 			exit(0);
 		}
 		rcode = builtin(argv, envp);
@@ -425,6 +427,37 @@ void show_events() {
 	if (DEBUG_TASKMAN && debug) {
 		print_TM(task_manager);
 	}
+}
+
+int search(char **argv, char **envp) {
+	char buffer[MAXLINE], *path = getenv("PATH");
+	int bi = 0, pi = 0;
+	while (path[pi]) {
+		char c = path[pi++];
+
+		if (c == ':') {
+			buffer[bi++] = '/';
+
+			for (int i = 0; argv[0][i]; i++) {
+				buffer[bi++] = argv[0][i];
+			}
+			buffer[bi] = 0;
+
+			char *tmp = argv[0];
+			argv[0] = buffer;
+
+			// Run
+			if ( execve(argv[0], argv, envp) >= 0 ) {
+				return 0;
+			}
+
+			argv[0] = tmp;
+			bi = 0;
+		} else {
+			buffer[bi++] = c;
+		}
+	}
+	return 1;
 }
 
 int validHex(char c) {

@@ -70,7 +70,9 @@ int main(int argc, char **argv, char **envp) {
 }
 
 void print_cli(int breakLine) {
-	printf("%c  >", breakLine ? '\0' : '\n');
+	char pwd[100];
+	getcwd(pwd, 100);
+	printf("%c%s> ", breakLine ? '\0' : '\n', pwd);
 	fflush(stdout);
 }
 

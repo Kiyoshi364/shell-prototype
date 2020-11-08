@@ -4,19 +4,19 @@ O objetivo é fazer uma shell com funcionalidades básicas.
 
 ## Funcionalidades básicas
 
- - [ ] interação
+ - [X] interação
 	 - [X] EOF (ctrl-d): Terminar ao ler EOF
 	 - [X] input parser
-	 - [ ] command runner
+	 - [X] command runner
 		- [X] general commands
 			 - [X] \<task\> &: rodar task em background
-		- [ ] built-in
+		- [X] built-in
 			 - [X] quit: sair do programa
-			 - [ ] cd: change-directory
-			 - [ ] task management
+			 - [X] cd: change-directory
+			 - [X] task management
 				 - [X] jobs: listar tasks
-				 - [ ] fg: *focar* em uma task
-				 - [ ] bg: rodar em background
+				 - [X] fg: *focar* em uma task
+				 - [X] bg: rodar em background
 				 - [X] \<builtin\> &: rodar builtin em background
 				 - [X] Job-Tree: Estrutura de dados para guardar as tasks
 						e meta-dados
@@ -28,9 +28,10 @@ O objetivo é fazer uma shell com funcionalidades básicas.
 
 ## Todo Extra
 
- - [ ] CLI with pwd
+ - [X] CLI with pwd
  - [ ] +, - identifiers in jobs
  - [ ] search commands in PATH directories
 
 ## Known Bugs
 
+ - Signaling with SIGSTOP, may cause task manager to lose track of task.

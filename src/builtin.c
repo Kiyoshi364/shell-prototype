@@ -79,7 +79,8 @@ int quit(char **argv, char **envp) {
 }
 
 int cd(char **argv, char **envp) {
-	return 0;
+	if (!argv[1]) return -1;
+	return chdir(argv[1]);
 }
 
 int jobs(char **argv, char **envp) {

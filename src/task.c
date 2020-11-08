@@ -136,13 +136,16 @@ task_t* pop_Task(task_man_t *tm) {
 
 int clean_TM(task_man_t *tm) {
 	task_t *task;
-	while (tm->size > 0) {
+	while (tm->size > 1) {
 		task = pop_Task(tm);
 
 		if (task->status != STATUS_TO_CLEAR) {
 			int status, err = 0;
-			if ( (err = waitpid(task->pid, &status, WNOHANG)) < 0 )
+			if ( (err = waitpid(task->pid, &status, WNOHANG)) < 0 ) {
 				printf("wait clean_TM: waitpid error (%d).\n", err);
+				break;
+			}
+
 			updateTask(task, status);
 
 			if ( task->status == STATUS_STOPPED ) {

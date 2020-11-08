@@ -1,6 +1,7 @@
 #include "builtin.h"
 
 extern int debug;
+extern int lastRCode;
 extern task_man_t *task_manager;
 
 int getBuiltinID(char *name) {
@@ -22,7 +23,7 @@ int getBuiltinID(char *name) {
 }
 
 int quit(char **argv, char **envp) {
-	int rcode = 0, flags = 0;
+	int rcode = lastRCode, flags = 0;
 
 	// Parsing input
 	for (int i = 1; argv[i]; i++) {
@@ -32,7 +33,8 @@ int quit(char **argv, char **envp) {
 				printf("usage: %s [-f|--force] [n]\n\n", argv[0]);
 				printf("\tQuit the shell.\n\n");
 				printf("\tExits the shell with a status of [n].\n");
-				printf("\tIf [n] is omitted, the exit status is 0.\n");
+				printf("\tIf [n] is omitted, the exit status is the\n");
+				printf("\tsame of the last command runned.\n");
 				printf("\tDoes not exit if there are pending tasks,\n");
 				printf("\tunless [-f|--force] is used.\n");
 				return 0;

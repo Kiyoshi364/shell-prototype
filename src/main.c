@@ -11,13 +11,14 @@
 // Globals
 int debug = 1;
 int events = 0;
+int lastRCode = 0;
 task_man_t *task_manager;
 
 // Main Functions
 void print_cli();
-int readCmd(char *, int *);
+int readCmd(char *);
 int parseCmd(char *, char *, char **);
-int run(char *, int, char **, char **, int);
+int run(char *, char **, char **, int);
 int builtin(char **, char **);
 void show_events();
 
@@ -41,7 +42,7 @@ int main(int argc, char **argv, char **envp) {
 
 	// for reading cmd
 	char cmd[MAXLINE] = "";
-	int cli = 1, read = 0;
+	int cli = 1;
 
 	// for parsing cmd
 	char *argv2[MAXARGS];
@@ -55,13 +56,13 @@ int main(int argc, char **argv, char **envp) {
 		if (cli) print_cli();
 
 		// Read from stdin
-		cli = readCmd(cmd, &read);
+		cli = readCmd(cmd);
 
 		// Parse cmd
 		bg = parseCmd(cmd, buffer, argv2);
 
 		// Do command or built-in
-		run(cmd, read, argv2, envp, bg);
+		lastRCode = run(cmd, argv2, envp, bg);
 
 		// Check for events
 		if (events) show_events();
@@ -77,7 +78,7 @@ void print_cli(int breakLine) {
 	fflush(stdout);
 }
 
-int readCmd(char *cmd, int *lenp) {
+int readCmd(char *cmd) {
 	int read = 0, cli = 0, state = NORMAL_STATE;
 	while (state != JUST_FINISHED_STATE && read < MAXLINE) {
 		int c = fgetc(stdin);
@@ -163,8 +164,6 @@ int readCmd(char *cmd, int *lenp) {
 	if (read >= MAXLINE) {
 		printf("psh: Input too big, it may be fragmented.\n");
 	}
-
-	*lenp = read + 1;
 
 	if (DEBUG_READ && debug && *cmd) printf("Read: %s\n\n", cmd);
 
@@ -295,8 +294,8 @@ int parseCmd(char *cmd, char *buffer, char **argv) {
 	return bg;
 }
 
-int run(char *cmd, int len, char **argv, char **envp, int bg) {
-	if (!(*cmd) || len <= 1) return 0;
+int run(char *cmd, char **argv, char **envp, int bg) {
+	if ( !(*cmd) ) return 0;
 
 	pid_t pid;
 	int jid = 0, rcode;
@@ -328,6 +327,8 @@ int run(char *cmd, int len, char **argv, char **envp, int bg) {
 		jid = push_Task(task_manager, task);
 
 		printf("[%u] %d\t\t%s\n", jid, pid, cmd);
+
+		rcode = 0;
 	} else if (forked) {
 		task_t *temp = *(task_manager->tasks);
 		*(task_manager->tasks) = task;
@@ -347,10 +348,12 @@ int run(char *cmd, int len, char **argv, char **envp, int bg) {
 			jid = push_Task(task_manager, task);
 
 			reportTask(task, jid);
+		} else if ( task->status == STATUS_DONE ) {
+			rcode = 0;
+		} else if ( task->status == STATUS_EXITED ) {
+			rcode = task->rcode;
 		}
 	}
-
-	// Future: save return code
 
 	if (!jid) freeTask(task);
 
@@ -358,7 +361,7 @@ int run(char *cmd, int len, char **argv, char **envp, int bg) {
 		print_TM(task_manager);
 	}
 
-	return 0;
+	return rcode;
 }
 
 int builtin(char **argv, char **envp) {

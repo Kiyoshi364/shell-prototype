@@ -12,7 +12,7 @@ int getBuiltinID(char *name) {
 		id = CD_BUILTIN;
 	} else if (!strcmp(name, "jobs")) {
 		id = JOBS_BUILTIN;
-	} else if (!strcmp(name, "fg")) {
+	} else if ( !strcmp(name, "fg") || (*name == '%') ) {
 		id = FG_BUILTIN;
 	} else if (!strcmp(name, "bg")) {
 		id = BG_BUILTIN;
@@ -90,7 +90,7 @@ int jobs(char **argv, char **envp) {
 			printf("\tPrints all pending tasks.\n");
 			return 0;
 		} else {
-			printf("Unknown argument: %s\n", argv[i]);
+			printf("Unknown argument: %s", argv[i]);
 			return 1;
 		}
 	}
@@ -104,6 +104,98 @@ int jobs(char **argv, char **envp) {
 }
 
 int fg(char **argv, char **envp) {
+	int jid = 0, flags = 0;
+
+	if (*argv[0] == '%') {
+		int valid = 0;
+		jid = parseInt(argv[0]+1, "", &valid);
+		if (!valid) {
+			printf("Unknown argument (%%): %s", argv[0]);
+			return 1;
+		}
+		flags |= jid > 0 ? 2 : 0;
+	} else {
+		// Parsing input for fg
+		for (int i = 1; argv[i]; i++) {
+			if ( !strcmp(argv[i], "--help") ) {
+				printf("usage: %s [tid]\n\n", argv[0]);
+				printf("\tMove task to foreground.\n\n");
+				printf("\tIf [tid] is not provided, the\n");
+				printf("\tjob if highest tid will be used.\n");
+				return 0;
+			} else if ( !(flags&2) && ('0' <= argv[i][0] && argv[i][0] <= '9') ) {
+				int valid = 0;
+				jid = parseInt(argv[i], "", &valid);
+				if (!valid) {
+					printf("Unknown argument (number): %s", argv[i]);
+					return 1;
+				}
+				flags |= 2;
+			} else {
+				printf("Unknown argument: %s", argv[i]);
+				return 1;
+			}
+		}
+	}
+
+	task_t *task;
+
+	// if no user input
+	if ( !(flags&2) ){
+		jid = clean_TM(task_manager);
+		if ( !jid ) {
+			printf("psh: fg: no pending task.");
+			return 1;
+		}
+		task = pop_Task(task_manager);
+		jid = push_Task(task_manager, task);
+	} else {
+		// if not valid jid
+		if ( (jid < 1) || (jid > task_manager->size) ) {
+			printf("psh: fg: %d: no such task.", jid);
+			return 1;
+		} else {
+			task = (task_manager->tasks)[jid];
+			int tstatus = task->status;
+			if ( tstatus == STATUS_TO_CLEAR || tstatus == STATUS_NOT_RUNNING ) {
+			printf("psh: fg: %d: no such task.", jid);
+			return 1;
+			}
+		}
+	}
+
+	if (!jid) {
+		printf("psh: fg: no pending task.");
+		return 1;
+	}
+	// Running
+	task_t *temp = *(task_manager->tasks);
+	*(task_manager->tasks) = task;
+
+	printf("%s\n", task->cmd);
+	if ( task->status == STATUS_STOPPED ) {
+		kill(task->pid, SIGCONT);
+		task->status = STATUS_RUNNING;
+	}
+
+	// Waiting
+	int status, err = 0;
+
+	while ( !err ) {
+		if ( (err = waitpid(task->pid, &status, WNOHANG | WUNTRACED)) < 0 )
+			printf("wait fg foreground: waitpid error (%d).\n", err);
+	}
+
+	updateTask(task, status);
+
+	*(task_manager->tasks) = temp;
+
+	if ( task->status == STATUS_STOPPED || task->status == STATUS_SIGNALED ) {
+		reportTask(task, jid);
+	} else if ( task->status == STATUS_DONE || task->status == STATUS_EXITED ) {
+		reportTask(task, jid);
+	}
+
 	return 0;
 }
 

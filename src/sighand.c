@@ -10,7 +10,7 @@ void handler(int sig) {
 	task_t *fg_task = *(task_manager->tasks);
 	pid_t pid = fg_task->pid;
 	if (pid == 0) {
-		if (sig == SIGINT) print_cli();
+		if (sig == SIGINT) print_cli(0);
 		return;
 	}
 

@@ -97,7 +97,7 @@ int jobs(char **argv, char **envp) {
 			printf("\tPrints all pending tasks.\n");
 			return 0;
 		} else {
-			printf("Unknown argument: %s", argv[i]);
+			printf("Unknown argument: %s\n", argv[i]);
 			return 1;
 		}
 	}
@@ -110,7 +110,7 @@ int jobs(char **argv, char **envp) {
 
 		int status, err = 0;
 
-		if ( (err = waitpid(task->pid, &status, WNOHANG | WUNTRACED)) < 0 )
+		if ( (err = waitpid(task->pid, &status, WNOHANG)) < 0 )
 			printf("wait jobs: waitpid error (%d).\n", err);
 
 		updateTask(task, status);
@@ -128,7 +128,7 @@ int fg(char **argv, char **envp) {
 		int valid = 0;
 		jid = parseInt(argv[0]+1, "", &valid);
 		if (!valid) {
-			printf("Unknown argument (%%): %s", argv[0]);
+			printf("Unknown argument (%%): %s\n", argv[0]);
 			return 1;
 		}
 		flags |= jid > 0 ? 2 : 0;
@@ -145,12 +145,12 @@ int fg(char **argv, char **envp) {
 				int valid = 0;
 				jid = parseInt(argv[i], "", &valid);
 				if (!valid) {
-					printf("Unknown argument (number): %s", argv[i]);
+					printf("Unknown argument (number): %s\n", argv[i]);
 					return 1;
 				}
 				flags |= 2;
 			} else {
-				printf("Unknown argument: %s", argv[i]);
+				printf("Unknown argument: %s\n", argv[i]);
 				return 1;
 			}
 		}
@@ -163,7 +163,7 @@ int fg(char **argv, char **envp) {
 	if ( !(flags&2) ){
 		jid = clean_TM(task_manager);
 		if ( !jid ) {
-			printf("psh: fg: no pending task.");
+			printf("psh: fg: no pending task.\n");
 			return 1;
 		}
 		task = pop_Task(task_manager);
@@ -171,20 +171,20 @@ int fg(char **argv, char **envp) {
 	} else {
 		// if not valid jid
 		if ( (jid < 1) || (jid > task_manager->size) ) {
-			printf("psh: fg: %d: no such task.", jid);
+			printf("psh: fg: %d: no such task.\n", jid);
 			return 1;
 		} else {
 			task = (task_manager->tasks)[jid];
 			int tstatus = task->status;
 			if ( tstatus == STATUS_TO_CLEAR || tstatus == STATUS_NOT_RUNNING ) {
-			printf("psh: fg: %d: no such task.", jid);
+			printf("psh: fg: %d: no such task.\n", jid);
 			return 1;
 			}
 		}
 	}
 
 	if (!jid) {
-		printf("psh: fg: no pending task.");
+		printf("psh: fg: no pending task.\n");
 		return 1;
 	}
 
@@ -243,12 +243,12 @@ int bg(char **argv, char **envp) {
 			int valid = 0;
 			jid = parseInt(argv[i], "", &valid);
 			if (!valid) {
-				printf("Unknown argument (number): %s", argv[i]);
+				printf("Unknown argument (number): %s\n", argv[i]);
 				return 1;
 			}
 			flags |= 2;
 		} else {
-			printf("Unknown argument: %s", argv[i]);
+			printf("Unknown argument: %s\n", argv[i]);
 			return 1;
 		}
 	}
@@ -260,7 +260,7 @@ int bg(char **argv, char **envp) {
 	if ( !(flags&2) ){
 		jid = clean_TM(task_manager);
 		if ( !jid ) {
-			printf("psh: bg: no pending task.");
+			printf("psh: bg: no pending task.\n");
 			return 1;
 		}
 		task = pop_Task(task_manager);
@@ -268,20 +268,20 @@ int bg(char **argv, char **envp) {
 	} else {
 		// if not valid jid
 		if ( (jid < 1) || (jid > task_manager->size) ) {
-			printf("psh: bg: %d: no such task.", jid);
+			printf("psh: bg: %d: no such task.\n", jid);
 			return 1;
 		} else {
 			task = (task_manager->tasks)[jid];
 			int tstatus = task->status;
 			if ( tstatus == STATUS_TO_CLEAR || tstatus == STATUS_NOT_RUNNING ) {
-			printf("psh: bg: %d: no such task.", jid);
+			printf("psh: bg: %d: no such task.\n", jid);
 			return 1;
 			}
 		}
 	}
 
 	if (!jid) {
-		printf("psh: bg: no pending task.");
+		printf("psh: bg: no pending task.\n");
 		return 1;
 	}
 

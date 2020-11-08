@@ -9,6 +9,7 @@ extern task_man_t *task_manager;
 void handler(int sig) {
 	task_t *fg_task = *(task_manager->tasks);
 	pid_t pid = fg_task->pid;
+
 	if (pid == 0) {
 		if (sig == SIGINT) print_cli(0);
 		return;
@@ -17,8 +18,7 @@ void handler(int sig) {
 	int err;
 	if ( (err = kill(pid, sig)) < 0 )
 		printf("Could not send sig (%d) to pid (%d), err (%d).\n", sig, pid, err);
-
-	events = 1;
+	printf("Signal (%d) sent to pid (%d).\n", sig, pid);
 }
 
 void chld_handler(int sig) {

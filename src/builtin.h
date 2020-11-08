@@ -11,6 +11,7 @@
 #define JOBS_BUILTIN		3
 #define FG_BUILTIN			4
 #define BG_BUILTIN			5
+#define TM_BUILTIN			6
 
 int getBuiltinID(char *);
 
@@ -19,6 +20,7 @@ int cd(char **, char **);
 int jobs(char **, char **);
 int fg(char **, char **);
 int bg(char **, char **);
+int tm(char **, char **);
 
 int parseInt(char *, char *, int *);
 

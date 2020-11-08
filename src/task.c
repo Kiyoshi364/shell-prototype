@@ -117,6 +117,7 @@ int push_Task(task_man_t *tm, task_t *task) {
 		if ( !(tm->tasks = realloc(tm->tasks, tm->len*2)) ) {
 			return 0;
 		}
+		tm->len *= 2;
 	}
 
 	int jid = tm->size;
@@ -128,8 +129,11 @@ int push_Task(task_man_t *tm, task_t *task) {
 
 task_t* pop_Task(task_man_t *tm) {
 	if ( !tm || tm->size <= 0 ) return 0;
-	if ( tm->size - 1 < tm->len/2 ) {
-		// TODO: reduce de size
+	if ( (tm->len > INITIAL_STACK_SIZE) && (tm->size - 1 < tm->len/2) ) {
+		if ( !(tm->tasks = realloc(tm->tasks, tm->len/2)) ) {
+			return 0;
+		}
+		tm->len /= 2;
 	}
 	return (tm->tasks)[--tm->size];
 }
@@ -140,19 +144,11 @@ int clean_TM(task_man_t *tm) {
 		task = pop_Task(tm);
 
 		if (task->status != STATUS_TO_CLEAR) {
-			int status, err = 0;
-			if ( (err = waitpid(task->pid, &status, WNOHANG)) < 0 ) {
-				printf("wait clean_TM: waitpid error (%d).\n", err);
-				break;
-			}
-
-			updateTask(task, status);
-
-			if ( task->status == STATUS_STOPPED ) {
-				push_Task(tm, task);
-				break;
-			}
+			push_Task(tm, task);
+			break;
 		}
+
+		freeTask(task);
 	}
 	return tm->size;
 }

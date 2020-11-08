@@ -17,6 +17,8 @@ int getBuiltinID(char *name) {
 		id = FG_BUILTIN;
 	} else if (!strcmp(name, "bg")) {
 		id = BG_BUILTIN;
+	} else if (!strcmp(name, "tm")) {
+		id = TM_BUILTIN;
 	}
 
 	return id;
@@ -105,8 +107,10 @@ int jobs(char **argv, char **envp) {
 	for (int i = 1; i < task_manager->size; i++) {
 		task_t *task = (task_manager->tasks)[i];
 
-		if ( task->status == STATUS_TO_CLEAR || task->status == STATUS_NOT_RUNNING )
+		if ( task->status != STATUS_RUNNING ) {
+			reportTask(task, i);
 			continue;
+		}
 
 		int status, err = 0;
 
@@ -161,13 +165,19 @@ int fg(char **argv, char **envp) {
 	// validate or find jid
 	// if no user input
 	if ( !(flags&2) ){
-		jid = clean_TM(task_manager);
+		int i = task_manager->size-1;
+		while ( i > 0 ) {
+			task = (task_manager->tasks)[i];
+			if ( task->status != STATUS_TO_CLEAR ) {
+				break;
+			}
+			i--;
+		}
+		jid = i;
 		if ( !jid ) {
 			printf("psh: fg: no pending task.\n");
 			return 1;
 		}
-		task = pop_Task(task_manager);
-		jid = push_Task(task_manager, task);
 	} else {
 		// if not valid jid
 		if ( (jid < 1) || (jid > task_manager->size) ) {
@@ -192,17 +202,6 @@ int fg(char **argv, char **envp) {
 	task_t *temp = *(task_manager->tasks);
 	*(task_manager->tasks) = task;
 
-	int status, err = 0;
-	if ( (err = waitpid(task->pid, &status, WNOHANG)) < 0 )
-		printf("wait fg foreground: waitpid error (%d).\n", err);
-
-	updateTask(task, status);
-
-	if ( task->status == STATUS_DONE || task->status == STATUS_EXITED || task->status == STATUS_SIGNALED ) {
-		reportTask(task, jid);
-		return 0;
-	}
-
 	printf("%s\n", task->cmd);
 	if ( task->status == STATUS_STOPPED ) {
 		kill(task->pid, SIGCONT);
@@ -210,14 +209,18 @@ int fg(char **argv, char **envp) {
 	}
 
 	// Waiting
+	int status, err = 0;
+
 	while ( !err ) {
 		if ( (err = waitpid(task->pid, &status, WNOHANG | WUNTRACED)) < 0 )
 			printf("wait fg foreground: waitpid error (%d).\n", err);
 	}
 
-	updateTask(task, status);
-
 	*(task_manager->tasks) = temp;
+
+	if ( updateTask(task, status) < 0 ) {
+		printf("psh: Do not know what happend with the task.\n");
+	}
 
 	if ( task->status == STATUS_STOPPED || task->status == STATUS_SIGNALED ) {
 		reportTask(task, jid);
@@ -225,7 +228,7 @@ int fg(char **argv, char **envp) {
 		reportTask(task, jid);
 	}
 
-	return 0;
+	return task->rcode;
 }
 
 int bg(char **argv, char **envp) {
@@ -258,13 +261,19 @@ int bg(char **argv, char **envp) {
 	// validate or find jid
 	// if no user input
 	if ( !(flags&2) ){
-		jid = clean_TM(task_manager);
+		int i = task_manager->size-1;
+		while ( i > 0 ) {
+			task = (task_manager->tasks)[i];
+			if ( task->status != STATUS_TO_CLEAR ) {
+				break;
+			}
+			i--;
+		}
+		jid = i;
 		if ( !jid ) {
 			printf("psh: bg: no pending task.\n");
 			return 1;
 		}
-		task = pop_Task(task_manager);
-		jid = push_Task(task_manager, task);
 	} else {
 		// if not valid jid
 		if ( (jid < 1) || (jid > task_manager->size) ) {
@@ -288,12 +297,17 @@ int bg(char **argv, char **envp) {
 	// Running
 	*(task_manager->tasks) = task;
 
-	printf("%s", task->cmd);
+	printf("%s\n", task->cmd);
 	if ( task->status == STATUS_STOPPED ) {
 		kill(task->pid, SIGCONT);
 		task->status = STATUS_RUNNING;
 	}
 
+	return 0;
+}
+
+int tm(char **argv, char **envp) {
+	print_TM(task_manager);
 	return 0;
 }
 

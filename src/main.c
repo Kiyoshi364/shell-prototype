@@ -342,12 +342,15 @@ int run(char *cmd, char **argv, char **envp, int bg) {
 
 	*(task_manager->tasks) = temp;
 
-	updateTask(task, status);
+	if ( updateTask(task, status) < 0 ) {
+		printf("psh: Do not know what happend with the task.\n");
+	}
 
 	if ( task->status == STATUS_STOPPED || task->status == STATUS_SIGNALED ) {
 		reportTask(task, jid);
 	} else {
 		rcode = task->rcode;
+		jid = 0;
 	}
 
 	if (!jid) freeTask(task);
@@ -379,6 +382,9 @@ int builtin(char **argv, char **envp) {
 			break;
 		case BG_BUILTIN:
 			rcode = bg(argv, envp);
+			break;
+		case TM_BUILTIN:
+			rcode = tm(argv, envp);
 			break;
 
 		default:

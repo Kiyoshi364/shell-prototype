@@ -97,6 +97,17 @@ int jobs(char **argv, char **envp) {
 
 	for (int i = 1; i < task_manager->size; i++) {
 		task_t *task = (task_manager->tasks)[i];
+
+		if ( task->status == STATUS_TO_CLEAR || task->status == STATUS_NOT_RUNNING )
+			continue;
+
+		int status, err = 0;
+
+		if ( (err = waitpid(task->pid, &status, WNOHANG | WUNTRACED)) < 0 )
+			printf("wait jobs: waitpid error (%d).\n", err);
+
+		updateTask(task, status);
+
 		reportTask(task, i);
 	}
 

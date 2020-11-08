@@ -320,7 +320,7 @@ int run(char *cmd, int len, char **argv, char **envp, int bg) {
 	if (bg) {
 		jid = push_Task(task_manager, task);
 
-		printf("[%u] %d\t%s\n", jid, pid, cmd);
+		printf("[%u] %d\t\t%s\n", jid, pid, cmd);
 	} else if (forked) {
 		task_t *temp = *(task_manager->tasks);
 		*(task_manager->tasks) = task;

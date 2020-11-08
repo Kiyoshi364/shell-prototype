@@ -9,7 +9,7 @@
 #include "builtin.h"
 
 // Globals
-int debug = 1;
+int debug = 0;
 int events = 0;
 int lastRCode = 0;
 task_man_t *task_manager;

@@ -80,7 +80,11 @@ int quit(char **argv, char **envp) {
 
 int cd(char **argv, char **envp) {
 	if (!argv[1]) return -1;
-	return chdir(argv[1]);
+	int err;
+	if ( (err = chdir(argv[1])) < 1) {
+		perror("psh: cd");
+	}
+	return err;
 }
 
 int jobs(char **argv, char **envp) {

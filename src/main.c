@@ -75,34 +75,90 @@ void print_cli(int breakLine) {
 }
 
 int readCmd(char *cmd, int *lenp) {
-	int read = 0, cli = 0, endOfLine = 0;
-	while (!endOfLine && read < MAXLINE) {
+	int read = 0, cli = 0, state = NORMAL_STATE;
+	while (state != JUST_FINISHED_STATE && read < MAXLINE) {
 		int c = fgetc(stdin);
 
-		switch (c) {
-			case EOF:
-				putchar('\n');
-				exit(0);
+		if (state == NORMAL_STATE) {
+			switch (c) {
+				case EOF:
+					putchar('\n');
+					exit(0);
 
-			case '\n':
-				cli = 1;
-				endOfLine = 1;
-				break;
+				case '\'':
+					// Copy until next '
+					state = COPY_SIMPLE_STATE;
+					cmd[read++] = c;
+					break;
 
-			case '&':
+				case '"':
+					// Copy until next "
+					state = COPY_DOUBLE_STATE;
+					cmd[read++] = c;
+					break;
+
+				case '\\':
+					// if next is '\n' ignore both, else read '\'
+					state = ESCAPE_STATE;
+					break;
+
+				case '\n':
+					cli = 1;
+					state = JUST_FINISHED_STATE;
+					break;
+
+				case '&':
+					cmd[read++] = c;
+				case ';':
+					state = JUST_FINISHED_STATE;
+					break;
+
+				case ' ':
+					if (!read || cmd[read-1] == ' ') break;
+
+				default:
+					cmd[read++] = c;
+			}
+
+		} else if (state == COPY_SIMPLE_STATE) {
+			// Back to the normal
+			if (c == '\'') state = NORMAL_STATE;
+
+			else cmd[read++] = c;
+
+		} else if (state == COPY_DOUBLE_STATE) {
+			// Back to the normal
+			if (c == '"') state = NORMAL_STATE;
+
+			else cmd[read++] = c;
+
+		} else if (state == ESCAPE_STATE) {
+			// Back to the normal
+			if (c == '\n') ;
+
+			else {
+				cmd[read++] = '\\';
 				cmd[read++] = c;
-			case ';':
-				endOfLine = 1;
-				break;
+			}
 
-			case ' ':
-				if (!read || cmd[read-1] == ' ') break;
+			state = NORMAL_STATE;
 
-			default:
-				cmd[read++] = c;
+		} else {
+			// Should NOT enter here
+			cmd[read++] = '\0';
+			printf("AAAAAAAAAAAAAAA PANIC AAAAAAAAAAAAAAA\n");
+			printf("Reader entered in an undefined state.\n");
+			printf("cmd: %s\n", cmd);
+			printf("read: %d\n", read);
+			printf("AAAAAAAAAAAAAAA PANIC AAAAAAAAAAAAAAA\n");
+			exit(1);
 		}
 	}
 	cmd[read] = '\0';
+
+	if (read >= MAXLINE) {
+		printf("psh: Input too big, it may be fragmented.\n");
+	}
 
 	*lenp = read + 1;
 

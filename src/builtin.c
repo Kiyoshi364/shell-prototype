@@ -83,6 +83,23 @@ int cd(char **argv, char **envp) {
 }
 
 int jobs(char **argv, char **envp) {
+	// Parsing input
+	for (int i = 1; argv[i]; i++) {
+		if ( !strcmp(argv[i], "--help") ) {
+			printf("usage: %s\n\n", argv[0]);
+			printf("\tPrints all pending tasks.\n");
+			return 0;
+		} else {
+			printf("Unknown argument: %s\n", argv[i]);
+			return 1;
+		}
+	}
+
+	for (int i = 1; i < task_manager->size; i++) {
+		task_t *task = (task_manager->tasks)[i];
+		reportTask(task, i);
+	}
+
 	return 0;
 }
 

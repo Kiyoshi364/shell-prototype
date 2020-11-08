@@ -25,3 +25,12 @@ O objetivo é fazer uma shell com funcionalidades básicas.
  - [X] interpretação de sinais
 	 - [X] SIGINT (ctrl-c): enviar para a task em *foco*
 	 - [X] SIGSTP (ctrl-z): enviar para a task em *foco*
+
+## Todo Extra
+
+ - [ ] CLI with pwd
+ - [ ] +, - identifiers in jobs
+ - [ ] search commands in PATH directories
+
+## Known Bugs
+

@@ -270,7 +270,9 @@ int parseCmd(char *cmd, char *buffer, char **argv) {
 	buffer[bi++] = '\0';
 	argv[argc] = 0;
 
-	argc = bg ? argc-1 : argc;
+	if (bg) {
+		argv[--argc] = 0;
+	}
 
 	if (DEBUG_PARSE && debug) {
 		printf("cmd: %s\n", cmd);

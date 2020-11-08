@@ -341,9 +341,9 @@ int run(char *cmd, int len, char **argv, char **envp, int bg) {
 
 			reportTask(task, jid);
 		}
-	} else { // Builtin
-		// TODO: use rcode
 	}
+
+	// Future: save return code
 
 	if (!jid) freeTask(task);
 
@@ -401,6 +401,7 @@ void show_events() {
 			printf("AAAAAAAAAAAAAAA PANIC AAAAAAAAAAAAAAA\n");
 			printf("Event Handler: task not found.\n");
 			print_TM(task_manager);
+			printf("Event Handler: recovering.\n");
 			printf("AAAAAAAAAAAAAAA PANIC AAAAAAAAAAAAAAA\n");
 
 			task = newTask("<Untracked task>", pid);

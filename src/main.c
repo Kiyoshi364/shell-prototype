@@ -322,35 +322,32 @@ int run(char *cmd, char **argv, char **envp, int bg) {
 	// Update Task Manager
 	task_t *task = newTask(cmd, pid);
 	task->status = STATUS_RUNNING;
+	jid = push_Task(task_manager, task);
+
 
 	if (bg) {
-		jid = push_Task(task_manager, task);
-
 		printf("[%u] %d\t\t%s\n", jid, pid, cmd);
-	} else if (forked) {
-		task_t *temp = *(task_manager->tasks);
-		*(task_manager->tasks) = task;
+		return lastRCode;
+	}
 
-		int status, err = 0;
+	task_t *temp = *(task_manager->tasks);
+	*(task_manager->tasks) = task;
 
-		while ( !err ) {
-			if ( (err = waitpid(pid, &status, WNOHANG | WUNTRACED)) < 0 )
-				printf("wait foreground: waitpid error (%d).\n", err);
-		}
+	int status, err = 0;
 
-		updateTask(task, status);
+	while ( !err ) {
+		if ( (err = waitpid(pid, &status, WNOHANG | WUNTRACED)) < 0 )
+			printf("wait foreground: waitpid error (%d).\n", err);
+	}
 
-		*(task_manager->tasks) = temp;
+	*(task_manager->tasks) = temp;
 
-		if ( task->status == STATUS_STOPPED || task->status == STATUS_SIGNALED ) {
-			jid = push_Task(task_manager, task);
+	updateTask(task, status);
 
-			reportTask(task, jid);
-		} else if ( task->status == STATUS_DONE ) {
-			rcode = 0;
-		} else if ( task->status == STATUS_EXITED ) {
-			rcode = task->rcode;
-		}
+	if ( task->status == STATUS_STOPPED || task->status == STATUS_SIGNALED ) {
+		reportTask(task, jid);
+	} else {
+		rcode = task->rcode;
 	}
 
 	if (!jid) freeTask(task);

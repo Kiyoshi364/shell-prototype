@@ -316,7 +316,7 @@ int run(char *cmd, char **argv, char **envp, int bg) {
 	}
 
 	if (!forked) {
-		rcode = builtin(argv, envp);
+		return builtin(argv, envp);
 	}
 
 	// Update Task Manager
@@ -327,8 +327,6 @@ int run(char *cmd, char **argv, char **envp, int bg) {
 		jid = push_Task(task_manager, task);
 
 		printf("[%u] %d\t\t%s\n", jid, pid, cmd);
-
-		rcode = 0;
 	} else if (forked) {
 		task_t *temp = *(task_manager->tasks);
 		*(task_manager->tasks) = task;

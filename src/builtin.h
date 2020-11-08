@@ -3,6 +3,8 @@
 
 #include <string.h>
 
+#include "task.h"
+
 #define UNKNOWN_BUILTIN		0
 #define QUIT_BUILTIN		1
 #define CD_BUILTIN			2
@@ -17,5 +19,7 @@ int cd(char **, char **);
 int jobs(char **, char **);
 int fg(char **, char **);
 int bg(char **, char **);
+
+int parseInt(char *, char *, int *);
 
 #endif // BUILTIN

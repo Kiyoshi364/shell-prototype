@@ -19,13 +19,11 @@ int readCmd(char *, int *);
 int parseCmd(char *, char *, char **);
 int run(char *, int, char **, char **, int);
 int builtin(char **, char **);
+void show_events();
 
 // Char functions
 int validHex(char);
 char hexToNum(char);
-
-// To implement
-void show_events();
 
 int main(int argc, char **argv, char **envp) {
 

@@ -80,11 +80,13 @@ task_man_t* init_TM(const unsigned int initLen) {
 }
 
 task_man_t* free_TM(task_man_t *tm, int force) {
-	for ( task_t *task ; tm->size > 0; ) {
+	for ( task_t *task ; tm->size; ) {
 		task = pop_Task(tm);
-		if ( !force && task ) {
-			push_Task(tm, task);
-			return tm;
+		if ( !force && (task->status != STATUS_TO_CLEAR) ) {
+			if (tm->size > 0) {
+				push_Task(tm, task);
+				return tm;
+			}
 		}
 	}
 	free(tm->tasks);
@@ -125,6 +127,7 @@ int push_Task(task_man_t *tm, task_t *task) {
 task_t* pop_Task(task_man_t *tm) {
 	if ( !tm || tm->size <= 0 ) return 0;
 	if ( tm->size - 1 < tm->len/2 ) {
+		// TODO: reduce de size
 	}
 	return (tm->tasks)[--tm->size];
 }

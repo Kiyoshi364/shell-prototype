@@ -238,7 +238,7 @@ int bg(char **argv, char **envp) {
 	for (int i = 1; argv[i]; i++) {
 		if ( !strcmp(argv[i], "--help") ) {
 			printf("usage: %s [tid]\n\n", argv[0]);
-			printf("\tMove task to foreground.\n\n");
+			printf("\tMove task to background.\n\n");
 			printf("\tIf [tid] is not provided, the\n");
 			printf("\tjob if highest tid will be used.\n");
 			return 0;

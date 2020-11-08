@@ -140,8 +140,15 @@ int clean_TM(task_man_t *tm) {
 		task = pop_Task(tm);
 
 		if (task->status != STATUS_TO_CLEAR) {
-			push_Task(tm, task);
-			break;
+			int status, err = 0;
+			if ( (err = waitpid(task->pid, &status, WNOHANG)) < 0 )
+				printf("wait clean_TM: waitpid error (%d).\n", err);
+			updateTask(task, status);
+
+			if ( task->status == STATUS_STOPPED ) {
+				push_Task(tm, task);
+				break;
+			}
 		}
 	}
 	return tm->size;

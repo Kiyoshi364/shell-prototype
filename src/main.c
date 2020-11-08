@@ -399,8 +399,16 @@ void show_events() {
 		if ( !task ) {
 			// Should NOT enter here
 			printf("AAAAAAAAAAAAAAA PANIC AAAAAAAAAAAAAAA\n");
+			printf("Event Handler: task not found.\n");
 			print_TM(task_manager);
 			printf("AAAAAAAAAAAAAAA PANIC AAAAAAAAAAAAAAA\n");
+
+			task = newTask("<Untracked task>", pid);
+			jid = push_Task(task_manager, task);
+
+			updateTask(task, status);
+			reportTask(task, jid);
+
 			continue;
 		}
 		updateTask(task, status);

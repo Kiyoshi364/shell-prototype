@@ -151,6 +151,7 @@ int fg(char **argv, char **envp) {
 
 	task_t *task;
 
+	// validate or find jid
 	// if no user input
 	if ( !(flags&2) ){
 		jid = clean_TM(task_manager);
@@ -179,9 +180,21 @@ int fg(char **argv, char **envp) {
 		printf("psh: fg: no pending task.");
 		return 1;
 	}
+
 	// Running
 	task_t *temp = *(task_manager->tasks);
 	*(task_manager->tasks) = task;
+
+	int status, err = 0;
+	if ( (err = waitpid(task->pid, &status, WNOHANG)) < 0 )
+		printf("wait fg foreground: waitpid error (%d).\n", err);
+
+	updateTask(task, status);
+
+	if ( task->status == STATUS_DONE || task->status == STATUS_EXITED || task->status == STATUS_SIGNALED ) {
+		reportTask(task, jid);
+		return 0;
+	}
 
 	printf("%s\n", task->cmd);
 	if ( task->status == STATUS_STOPPED ) {
@@ -190,8 +203,6 @@ int fg(char **argv, char **envp) {
 	}
 
 	// Waiting
-	int status, err = 0;
-
 	while ( !err ) {
 		if ( (err = waitpid(task->pid, &status, WNOHANG | WUNTRACED)) < 0 )
 			printf("wait fg foreground: waitpid error (%d).\n", err);
@@ -211,6 +222,71 @@ int fg(char **argv, char **envp) {
 }
 
 int bg(char **argv, char **envp) {
+	int jid = 0, flags = 0;
+
+	// Parsing input
+	for (int i = 1; argv[i]; i++) {
+		if ( !strcmp(argv[i], "--help") ) {
+			printf("usage: %s [tid]\n\n", argv[0]);
+			printf("\tMove task to foreground.\n\n");
+			printf("\tIf [tid] is not provided, the\n");
+			printf("\tjob if highest tid will be used.\n");
+			return 0;
+		} else if ( !(flags&2) && ('0' <= argv[i][0] && argv[i][0] <= '9') ) {
+			int valid = 0;
+			jid = parseInt(argv[i], "", &valid);
+			if (!valid) {
+				printf("Unknown argument (number): %s", argv[i]);
+				return 1;
+			}
+			flags |= 2;
+		} else {
+			printf("Unknown argument: %s", argv[i]);
+			return 1;
+		}
+	}
+
+	task_t *task;
+
+	// validate or find jid
+	// if no user input
+	if ( !(flags&2) ){
+		jid = clean_TM(task_manager);
+		if ( !jid ) {
+			printf("psh: bg: no pending task.");
+			return 1;
+		}
+		task = pop_Task(task_manager);
+		jid = push_Task(task_manager, task);
+	} else {
+		// if not valid jid
+		if ( (jid < 1) || (jid > task_manager->size) ) {
+			printf("psh: bg: %d: no such task.", jid);
+			return 1;
+		} else {
+			task = (task_manager->tasks)[jid];
+			int tstatus = task->status;
+			if ( tstatus == STATUS_TO_CLEAR || tstatus == STATUS_NOT_RUNNING ) {
+			printf("psh: bg: %d: no such task.", jid);
+			return 1;
+			}
+		}
+	}
+
+	if (!jid) {
+		printf("psh: bg: no pending task.");
+		return 1;
+	}
+
+	// Running
+	*(task_manager->tasks) = task;
+
+	printf("%s", task->cmd);
+	if ( task->status == STATUS_STOPPED ) {
+		kill(task->pid, SIGCONT);
+		task->status = STATUS_RUNNING;
+	}
+
 	return 0;
 }
 

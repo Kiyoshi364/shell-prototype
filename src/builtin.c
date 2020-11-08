@@ -29,12 +29,13 @@ int quit(char **argv, char **envp) {
 		char *arg = argv[i]+1;
 		if (argv[i][0] == '-') {
 			if ( !strcmp(arg, "-help") ) {
-				printf("usage: %s -[f|-force] [n]\n\n", argv[0]);
+				printf("usage: %s [-f|--force] [n]\n\n", argv[0]);
 				printf("\tQuit the shell.\n\n");
 				printf("\tExits the shell with a status of [n].\n");
 				printf("\tIf [n] is omitted, the exit status is 0.\n");
 				printf("\tDoes not exit if there are pending tasks,\n");
-				printf("\tunless [f|-force] is used.\n");
+				printf("\tunless [-f|--force] is used.\n");
+				return 0;
 			} else if ( !strcmp(arg, "f") || !strcmp(arg,"-force") ) {
 				flags |= 1;
 			} else {

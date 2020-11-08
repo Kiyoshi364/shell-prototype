@@ -64,6 +64,8 @@ void reportTask(task_t *task, int jid) {
 			printf("[%d]%c %d Done\t\t%s\n", jid, 0, pid, cmd);
 			task->status = STATUS_TO_CLEAR;
 			break;
+		case STATUS_TO_CLEAR:
+			break;
 		default:
 			printf("[%d]%c %d Unknown\t\t%s\n", jid, 0, pid, cmd);
 			task->status = STATUS_TO_CLEAR;
